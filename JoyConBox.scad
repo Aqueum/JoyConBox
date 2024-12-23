@@ -7,14 +7,15 @@ nozzle = 0.4; // nozzle diameter for 3D printing
 boxWallThickness = 3*nozzle; // wall thickness for main box
 minWallThickness = 2*nozzle; // minimum wall thickness for magnet holes
 floorThickness   = 4*nozzle;
+lidInsert        = 3; // inset for lid to fit inside box
 boxInnerX        = 98; // internal width
 boxInnerY        = 151; // internal depth
-boxInnerZ        = 108; // internal height
+boxInnerZ        = 108+lidInsert; // internal height
 
 // Magnets
 magnetDiameter   = 6;
 magnetThickness  = 3;
-magnetInset      = 10; // distance from edge
+magnetOffset = (magnetDiameter/2) + minWallThickness;  // Center position from edge
 
 // Insert: approximate placeholders for Joy Cons + grips, power bank, straps
 controllerBlockX = 49;  // half of 98
@@ -67,13 +68,21 @@ module corner_reinforcement() {
     );
 }
 
+module magnet_holes() {
+    // Magnet holes precisely in corners
+    for(x=[magnetOffset, boxOuterX - magnetOffset])
+    for(y=[magnetOffset, boxOuterY - magnetOffset]) {
+        translate([x, y, boxOuterZ - magnetThickness])
+            cylinder(d=magnetDiameter, h=magnetThickness + 2);
+    }
+}
+
 module box_body() {
-    magnetOffset = (magnetDiameter/2) + minWallThickness;  // Center position from edge
-    
+
     difference() {
 
-            // Main box
-            cube([boxOuterX, boxOuterY, boxOuterZ]);
+        // Main box
+        cube([boxOuterX, boxOuterY, boxOuterZ]);
             
         
         // Interior hollow
@@ -95,18 +104,12 @@ module box_body() {
                 corner_reinforcement();
             }
         }
-        
-        // Magnet holes precisely in corners
-        for(x=[magnetOffset, boxOuterX - magnetOffset])
-        for(y=[magnetOffset, boxOuterY - magnetOffset]) {
-            translate([x, y, boxOuterZ - magnetThickness])
-                cylinder(d=magnetDiameter, h=magnetThickness + 2);
-        }
+
+        magnet_holes();
+
     }
 }
 
-// Render just the box body
-box_body();
 /*
 module removable_insert() {
     // Simple shape that holds two angled controllers above power bank + straps
@@ -174,10 +177,11 @@ module lid_and_acrylic() {
 ////////////////////////////////////////
 module full_assembly() {
     box_body();
-    translate([clearance, clearance, floorThickness])
+    /*translate([clearance, clearance, floorThickness])
         removable_insert();
     translate([0,0,boxOuterZ])
         lid_and_acrylic();
+    */
 }
 
 ////////////////////////////////////////
