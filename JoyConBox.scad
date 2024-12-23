@@ -6,9 +6,9 @@
 boxWallThickness = 3;
 minWall          = 2; // minimum wall thickness for magnet holes
 floorThickness   = 3;
-boxInnerX        = 140; // internal width
-boxInnerY        = 190; // internal depth
-boxInnerZ        = 130; // internal height
+boxInnerX        = 98; // internal width
+boxInnerY        = 151; // internal depth
+boxInnerZ        = 108; // internal height
 
 // Magnets
 magnetDiameter   = 6;
