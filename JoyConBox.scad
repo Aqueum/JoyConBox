@@ -74,22 +74,52 @@ module magnet_holes() {
         cylinder(d=magnetDiameter, h=magnetThickness + 2, center=false);
 }
 
+// Core box structure
 module box_body() {
     difference() {
-        // Outer walls
-        cube([boxOuterX, boxOuterY, boxOuterZ]);
-
-        // Hollow interior
+        union() {
+            // Main box
+            cube([boxOuterX, boxOuterY, boxOuterZ]);
+            
+            // Corner reinforcements
+            for (x = [0, boxOuterX - boxWallThickness])
+            for (y = [0, boxOuterY - boxWallThickness]) {
+                translate([x, y, boxOuterZ - 15])
+                linear_extrude(height = 15) {
+                    polygon(points = [
+                        [0, 0], [15, 0], [15, 15], 
+                        [0, 15], [7.5, 7.5]
+                    ]);
+                }
+            }
+        }
+        
+        // Interior hollow
         translate([boxWallThickness, boxWallThickness, floorThickness])
-            cube([boxInnerX, boxInnerY, boxInnerZ]);
-
-        // Add tapered corner reinforcements
-        corner_reinforcements();
-
-        // Subtract magnet holes
-        magnet_holes();
+            cube([boxInnerX, boxInnerY, boxInnerZ + 1]);
+        
+        // LED channel
+        translate([boxWallThickness - ledChannelDepth, 
+                  boxWallThickness - ledChannelDepth, 0])
+        difference() {
+            cube([boxInnerX + 2*ledChannelDepth, 
+                  boxInnerY + 2*ledChannelDepth, 
+                  ledChannelHeight]);
+            translate([ledChannelDepth, ledChannelDepth, -1])
+                cube([boxInnerX, boxInnerY, ledChannelHeight + 2]);
+        }
+        
+        // Magnet holes
+        for (x = [magnetInset, boxOuterX - magnetInset])
+        for (y = [magnetInset, boxOuterY - magnetInset]) {
+            translate([x, y, boxOuterZ - magnetThickness])
+                cylinder(d = magnetDiameter, h = magnetThickness + 1);
+        }
     }
 }
+
+// Render
+box_body();
 /*
 module removable_insert() {
     // Simple shape that holds two angled controllers above power bank + straps
