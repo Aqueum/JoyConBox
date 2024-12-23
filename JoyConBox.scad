@@ -3,9 +3,10 @@
 ////////////////////////////////////////////////////////////
 
 // Overall box parameters
-boxWallThickness = 3;
-minWall          = 2; // minimum wall thickness for magnet holes
-floorThickness   = 3;
+nozzle = 0.4; // nozzle diameter for 3D printing
+boxWallThickness = 3*nozzle; // wall thickness for main box
+minWallThickness = 2*nozzle; // minimum wall thickness for magnet holes
+floorThickness   = 4*nozzle;
 boxInnerX        = 98; // internal width
 boxInnerY        = 151; // internal depth
 boxInnerZ        = 108; // internal height
@@ -48,7 +49,7 @@ ledChannelHeight = 5;
 
 module corner_reinforcement() {
     height = -20;  // Height of reinforcement
-    width = 10;   // Width and depth of triangle base
+    width = 15;   // Width and depth of triangle base
     
     polyhedron(
         points = [
@@ -67,7 +68,7 @@ module corner_reinforcement() {
 }
 
 module box_body() {
-    magnetOffset = (magnetDiameter/2) + minWall;  // Center position from edge
+    magnetOffset = (magnetDiameter/2) + minWallThickness;  // Center position from edge
     
     difference() {
 
@@ -82,10 +83,10 @@ module box_body() {
 
             // Corner reinforcements aligned with magnet positions
             cornerPositions = [
-                [magnetOffset - minWall, magnetOffset - minWall, 0],          // Front Left
-                [boxOuterX - magnetOffset + minWall, magnetOffset - minWall, 90],    // Front Right
-                [boxOuterX - magnetOffset + minWall, boxOuterY - magnetOffset + minWall, 180], // Back Right
-                [magnetOffset - minWall, boxOuterY - magnetOffset + minWall, 270]    // Back Left
+                [magnetOffset - 3*boxWallThickness, magnetOffset - 3*boxWallThickness, 0],          // Front Left
+                [boxOuterX - magnetOffset + 3*boxWallThickness, magnetOffset - 3*boxWallThickness, 90],    // Front Right
+                [boxOuterX - magnetOffset + 3*boxWallThickness, boxOuterY - magnetOffset + 3*boxWallThickness, 180], // Back Right
+                [magnetOffset - 3*boxWallThickness, boxOuterY - magnetOffset + 3*boxWallThickness, 270]    // Back Left
             ];
 
             for(pos = cornerPositions) {
