@@ -4,6 +4,7 @@
 
 // Overall box parameters
 boxWallThickness = 3;
+minWall          = 2; // minimum wall thickness for magnet holes
 floorThickness   = 3;
 boxInnerX        = 140; // internal width
 boxInnerY        = 190; // internal depth
@@ -47,7 +48,7 @@ ledChannelHeight = 5;
 
 module corner_reinforcement() {
     height = -20;  // Height of reinforcement
-    width = 15;   // Width and depth of triangle base
+    width = 10;   // Width and depth of triangle base
     
     polyhedron(
         points = [
@@ -66,24 +67,33 @@ module corner_reinforcement() {
 }
 
 module box_body() {
-    magnetOffset = 2.5 + (magnetDiameter/2);  // Center position from edge
+    magnetOffset = (magnetDiameter/2) + minWall;  // Center position from edge
     
     difference() {
-        union() {
+
             // Main box
             cube([boxOuterX, boxOuterY, boxOuterZ]);
             
-            // Corner reinforcements aligned with magnet positions
-            for(x=[magnetOffset - 7.5, boxOuterX - magnetOffset - 7.5])
-            for(y=[magnetOffset - 7.5, boxOuterY - magnetOffset - 7.5]) {
-                translate([x, y, boxOuterZ])  // Removed subtraction
-                    corner_reinforcement();
-            }
-        }
         
         // Interior hollow
-        translate([boxWallThickness, boxWallThickness, floorThickness])
-            cube([boxInnerX, boxInnerY, boxInnerZ + 1]);
+        difference() {
+            translate([boxWallThickness, boxWallThickness, floorThickness])
+                cube([boxInnerX, boxInnerY, boxInnerZ + 1]);
+
+            // Corner reinforcements aligned with magnet positions
+            cornerPositions = [
+                [magnetOffset - minWall, magnetOffset - minWall, 0],          // Front Left
+                [boxOuterX - magnetOffset + minWall, magnetOffset - minWall, 90],    // Front Right
+                [boxOuterX - magnetOffset + minWall, boxOuterY - magnetOffset + minWall, 180], // Back Right
+                [magnetOffset - minWall, boxOuterY - magnetOffset + minWall, 270]    // Back Left
+            ];
+
+            for(pos = cornerPositions) {
+                translate([pos[0], pos[1], boxOuterZ])
+                rotate([0, 0, pos[2]])
+                corner_reinforcement();
+            }
+        }
         
         // Magnet holes precisely in corners
         for(x=[magnetOffset, boxOuterX - magnetOffset])
