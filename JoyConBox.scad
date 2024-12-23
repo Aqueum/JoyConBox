@@ -45,70 +45,50 @@ ledChannelHeight = 5;
 // Main modules
 ////////////////////////
 
-module corner_reinforcements() {
-    // Tapered corner reinforcements for magnets
-    for (x = [0, boxOuterX - boxWallThickness])
-    for (y = [0, boxOuterY - boxWallThickness]) {
-        translate([x, y, boxOuterZ - 15]) // Align to box corners, adjust height
-            linear_extrude(height=15) {  // Extrusion height matches taper
-                polygon(points=[
-                    [0, 0],                  // Start at the corner
-                    [15, 0],                 // Extend outward along X
-                    [15, 15],                // Extend outward along Y
-                    [0, 15],                 // Back to origin along Y
-                    [7.5, 7.5]               // Taper inward to the center
-                ], paths=[[0, 1, 2, 3, 4]]);
-            }
-    }
+module corner_reinforcement() {
+    height = 20;  // Height of reinforcement
+    width = 15;   // Width and depth of triangle base
+    
+    polyhedron(
+        points = [
+            [0,0,0],          // 0: base front left
+            [width,0,0],      // 1: base front right
+            [0,width,0],      // 2: base back left
+            [0,0,height],     // 3: top point
+        ],
+        faces = [
+            [0,1,2],          // bottom
+            [0,3,1],          // front
+            [1,3,2],          // right
+            [2,3,0]           // left
+        ]
+    );
 }
 
-module magnet_holes() {
-    // Place magnets inside corner reinforcements
-    translate([magnetInset, magnetInset, boxOuterZ - magnetThickness - 1])
-        cylinder(d=magnetDiameter, h=magnetThickness + 2, center=false);
-    translate([boxOuterX - magnetInset - magnetDiameter, magnetInset, boxOuterZ - magnetThickness - 1])
-        cylinder(d=magnetDiameter, h=magnetThickness + 2, center=false);
-    translate([magnetInset, boxOuterY - magnetInset - magnetDiameter, boxOuterZ - magnetThickness - 1])
-        cylinder(d=magnetDiameter, h=magnetThickness + 2, center=false);
-    translate([boxOuterX - magnetInset - magnetDiameter, boxOuterY - magnetInset - magnetDiameter, boxOuterZ - magnetThickness - 1])
-        cylinder(d=magnetDiameter, h=magnetThickness + 2, center=false);
-}
-
-// Core box structure
 module box_body() {
+    magnetOffset = 2.5 + (magnetDiameter/2);  // Center position from edge
+    
     difference() {
-        // Main outer shell
-        cube([boxOuterX, boxOuterY, boxOuterZ]);
+        union() {
+            // Main box
+            cube([boxOuterX, boxOuterY, boxOuterZ]);
+            
+            // Corner reinforcements aligned with magnet positions
+            for(x=[magnetOffset - 7.5, boxOuterX - magnetOffset - 7.5])
+            for(y=[magnetOffset - 7.5, boxOuterY - magnetOffset - 7.5]) {
+                translate([x, y, boxOuterZ])  // Removed subtraction
+                    corner_reinforcement();
+            }
+        }
         
         // Interior hollow
         translate([boxWallThickness, boxWallThickness, floorThickness])
             cube([boxInnerX, boxInnerY, boxInnerZ + 1]);
-            
-        // LED channel - clean perimeter design
-        translate([0, 0, floorThickness]) {
-            difference() {
-                translate([boxWallThickness-ledChannelDepth, 
-                         boxWallThickness-ledChannelDepth, 0])
-                    cube([boxInnerX + 2*ledChannelDepth, 
-                          boxInnerY + 2*ledChannelDepth, 
-                          ledChannelHeight]);
-                translate([boxWallThickness, boxWallThickness, -1])
-                    cube([boxInnerX, boxInnerY, ledChannelHeight + 2]);
-            }
-        }
-    }
-    
-    // Add corner reinforcements
-    for(x=[0, boxOuterX - 15])
-    for(y=[0, boxOuterY - 15]) {
-        difference() {
-            translate([x, y, boxOuterZ - 15])
-                linear_extrude(height=15)
-                    polygon([[0,0], [15,0], [15,15], [0,15]]);
-            
-            // Magnet holes in reinforcements
-            translate([x + magnetInset, y + magnetInset, 
-                      boxOuterZ - magnetThickness - 1])
+        
+        // Magnet holes precisely in corners
+        for(x=[magnetOffset, boxOuterX - magnetOffset])
+        for(y=[magnetOffset, boxOuterY - magnetOffset]) {
+            translate([x, y, boxOuterZ - magnetThickness])
                 cylinder(d=magnetDiameter, h=magnetThickness + 2);
         }
     }
