@@ -46,7 +46,7 @@ ledChannelHeight = 5;
 ////////////////////////
 
 module corner_reinforcement() {
-    height = 20;  // Height of reinforcement
+    height = -20;  // Height of reinforcement
     width = 15;   // Width and depth of triangle base
     
     polyhedron(
